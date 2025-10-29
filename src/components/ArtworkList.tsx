@@ -13,11 +13,13 @@ export const ArtworkList = () => {
   const observerTarget = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Initial load
+    const hasFilters = selectedDepartment !== null || artistOrCulture;
+    const queryToUse = searchQuery || (hasFilters ? undefined : 'painting');
+    
     dispatch(searchArtworks({ 
-      query: searchQuery || 'painting',
+      query: queryToUse,
       departmentId: selectedDepartment || undefined,
-      artistOrCulture 
+      artistOrCulture: artistOrCulture || false
     }));
   }, [dispatch, searchQuery, selectedDepartment, artistOrCulture]);
 

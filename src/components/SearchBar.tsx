@@ -15,23 +15,29 @@ export const SearchBar = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   
-  const debouncedQuery = useDebounce(localQuery, 300);
+  const debouncedQuery = useDebounce(localQuery, 500);
 
   useEffect(() => {
-    if (debouncedQuery.length > 0) {
-      // For simplicity, we'll show cached suggestions
-      // In a real app, you might want to call an autocomplete API
+    // Auto-search when user stops typing (after debounce)
+    if (debouncedQuery !== searchQuery) {
+      dispatch(setSearchQuery(debouncedQuery));
+    }
+  }, [debouncedQuery, dispatch, searchQuery]);
+
+  useEffect(() => {
+    if (localQuery.length > 0) {
+      // Show cached suggestions
       const cachedSuggestions = localStorage.getItem('art-search-history');
       if (cachedSuggestions) {
         const history = JSON.parse(cachedSuggestions) as string[];
         setSuggestions(
-          history.filter(s => s.toLowerCase().includes(debouncedQuery.toLowerCase()))
+          history.filter(s => s.toLowerCase().includes(localQuery.toLowerCase()))
         );
       }
     } else {
       setSuggestions([]);
     }
-  }, [debouncedQuery]);
+  }, [localQuery]);
 
   const handleSearch = useCallback((query: string) => {
     dispatch(setSearchQuery(query));
@@ -57,6 +63,12 @@ export const SearchBar = () => {
             placeholder="Buscar obras por título, artista..."
             value={localQuery}
             onChange={(e) => setLocalQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleSearch(localQuery);
+                setShowSuggestions(false);
+              }
+            }}
             onFocus={() => setShowSuggestions(true)}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             className="pl-10 pr-8"

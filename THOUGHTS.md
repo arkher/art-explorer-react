@@ -59,7 +59,7 @@ src/
 
 ## 🤔 Decisões Técnicas
 
-### 1. Persistência Local: `localStorage` vs `IndexedDB`
+### 1. Persistência Local: `localStorage`
 
 **Decisão:** Utilizar `localStorage`
 
@@ -69,11 +69,6 @@ src/
 - **Performance**: Para o escopo atual, o `localStorage` oferece performance suficiente
 - **Compatibilidade**: Melhor suporte cross-browser sem necessidade de polyfills
 - **Integração com Redux**: O `redux-persist` oferece integração nativa com `localStorage`
-
-**Quando usar `IndexedDB` no futuro:**
-- Se decidirmos cachear as obras visualizadas
-- Se implementarmos sincronização offline completa
-- Se o volume de favoritos crescer significativamente
 
 ### 2. Redux com Redux Toolkit
 
@@ -85,10 +80,6 @@ src/
 - **Persistência**: Integração fácil com `redux-persist`
 - **DevTools**: Excelente suporte para debugging
 - **Escalabilidade**: Facilita crescimento futuro do estado da aplicação
-
-**Alternativas consideradas:**
-- **Zustand**: Mais leve, mas Redux oferece mais maturidade e ecossistema
-- **Context API**: Boa para apps menores, mas não escala bem para aplicações complexas
 
 ### 3. Scroll Infinito vs Paginação
 
