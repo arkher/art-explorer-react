@@ -4,11 +4,11 @@ import { Input } from './ui/Input';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';
 import { useAppDispatch, useAppSelector } from '@/hooks';
-import { setSearchQuery } from '@/store/slices/artworkSlice';
+import { setSearchQuery, searchArtworks } from '@/store/slices/artworkSlice';
 import { useDebounce } from '@/hooks/useDebounce';
 export const SearchBar = () => {
   const dispatch = useAppDispatch();
-  const { searchQuery } = useAppSelector(
+  const { searchQuery, selectedDepartment, artistOrCulture } = useAppSelector(
     state => state.artwork
   );
   const [localQuery, setLocalQuery] = useState(searchQuery);
@@ -39,19 +39,33 @@ export const SearchBar = () => {
     }
   }, [localQuery]);
 
-  const handleSearch = useCallback((query: string) => {
-    dispatch(setSearchQuery(query));
+  const handleSearch = useCallback((query: string, forceSearch = false) => {
+    const trimmedQuery = query.trim();
+    dispatch(setSearchQuery(trimmedQuery));
+    
+    // Se for uma busca forçada (clicou no botão), dispara a busca diretamente
+    if (forceSearch) {
+      const hasFilters = selectedDepartment !== null || artistOrCulture;
+      const queryToUse = trimmedQuery || (hasFilters ? undefined : 'painting');
+      
+      dispatch(searchArtworks({
+        query: queryToUse || undefined,
+        departmentId: selectedDepartment !== null && selectedDepartment !== undefined ? selectedDepartment : undefined,
+        artistOrCulture: artistOrCulture || false
+      }));
+    }
+    
     // Save search history
     const history = localStorage.getItem('art-search-history');
     const searchHistory = history ? JSON.parse(history) : [];
-    if (query && !searchHistory.includes(query)) {
-      searchHistory.unshift(query);
+    if (trimmedQuery && !searchHistory.includes(trimmedQuery)) {
+      searchHistory.unshift(trimmedQuery);
       localStorage.setItem(
         'art-search-history',
         JSON.stringify(searchHistory.slice(0, 10))
       );
     }
-  }, [dispatch]);
+  }, [dispatch, selectedDepartment, artistOrCulture]);
 
   return (
     <div className="w-full relative">
@@ -65,7 +79,7 @@ export const SearchBar = () => {
             onChange={(e) => setLocalQuery(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
-                handleSearch(localQuery);
+                handleSearch(localQuery, true); // força a busca quando Enter é pressionado
                 setShowSuggestions(false);
               }
             }}
@@ -88,7 +102,7 @@ export const SearchBar = () => {
           )}
         </div>
 
-        <Button onClick={() => handleSearch(localQuery)}>
+        <Button onClick={() => handleSearch(localQuery, true)}>
           Buscar
         </Button>
       </div>
@@ -103,7 +117,7 @@ export const SearchBar = () => {
                 className="w-full justify-start"
                 onClick={() => {
                   setLocalQuery(suggestion);
-                  handleSearch(suggestion);
+                  handleSearch(suggestion, true); // força a busca ao clicar em sugestão
                   setShowSuggestions(false);
                 }}
               >
